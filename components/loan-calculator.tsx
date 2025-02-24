@@ -24,11 +24,13 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
+import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, BarElement)
@@ -49,6 +51,7 @@ interface ValidationErrors {
 }
 
 export default function LoanCalculator() {
+  const [darkMode, setDarkMode] = useState(false)
   const [date, setDate] = useState<Date>()
   const [schedule, setSchedule] = useState<ScheduleRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -60,6 +63,15 @@ export default function LoanCalculator() {
     frequency: "monthly",
     moratorium: "0",
   })
+
+  // Toggle dark mode
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+  }, [darkMode])
 
   const validateForm = (data: typeof formData) => {
     const newErrors: ValidationErrors = {}
@@ -217,15 +229,33 @@ export default function LoanCalculator() {
     plugins: {
       legend: {
         position: "top" as const,
+        labels: {
+          color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
+        },
       },
       title: {
         display: true,
         text: "Loan Amortization Chart",
+        color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        grid: {
+          color: darkMode ? "rgba(241, 245, 249, 0.1)" : "rgba(15, 23, 42, 0.1)",
+        },
+        ticks: {
+          color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
+        },
+      },
+      x: {
+        grid: {
+          color: darkMode ? "rgba(241, 245, 249, 0.1)" : "rgba(15, 23, 42, 0.1)",
+        },
+        ticks: {
+          color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
+        },
       },
     },
   }
@@ -242,31 +272,69 @@ export default function LoanCalculator() {
   ]
 
   return (
-    <div className="space-y-8 rounded-lg border bg-white p-6 shadow-sm">
+    <div
+      className={cn(
+        "space-y-8 rounded-lg border bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900",
+        darkMode && "dark",
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold dark:text-white">Loan Calculator</h2>
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="dark-mode" className="dark:text-white">
+                    Dark Mode
+                  </Label>
+                  <Switch id="dark-mode" checked={darkMode} onCheckedChange={setDarkMode} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle dark mode</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
       <div className="grid gap-8">
         <div className="grid gap-6">
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Date & Principal Amount */}
             <div className="space-y-2">
-              <Label htmlFor="date">Disbursement Date</Label>
+              <Label htmlFor="date" className="dark:text-white">
+                Disbursement Date
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
-                    className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                    className={cn(
+                      "w-full justify-start text-left font-normal dark:bg-slate-800 dark:text-white",
+                      !date && "text-muted-foreground",
+                    )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                    className="dark:bg-slate-800"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="principal">Principal Amount</Label>
+                <Label htmlFor="principal" className="dark:text-white">
+                  Principal Amount
+                </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -286,17 +354,18 @@ export default function LoanCalculator() {
                 step="0.01"
                 value={formData.principal}
                 onChange={handleInputChange}
-                className="w-full"
+                className="w-full dark:bg-slate-800 dark:text-white"
               />
               {errors.principal && <p className="text-sm text-destructive">{errors.principal}</p>}
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Tenure & Frequency */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="tenure">Tenure (Years)</Label>
+                <Label htmlFor="tenure" className="dark:text-white">
+                  Tenure (Years)
+                </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -316,14 +385,16 @@ export default function LoanCalculator() {
                 step="1"
                 value={formData.tenure}
                 onChange={handleInputChange}
-                className="w-full"
+                className="w-full dark:bg-slate-800 dark:text-white"
               />
               {errors.tenure && <p className="text-sm text-destructive">{errors.tenure}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="frequency">EMI Frequency</Label>
+              <Label htmlFor="frequency" className="dark:text-white">
+                EMI Frequency
+              </Label>
               <Select name="frequency" value={formData.frequency} onValueChange={handleFrequencyChange}>
-                <SelectTrigger>
+                <SelectTrigger className="dark:bg-slate-800 dark:text-white">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -337,10 +408,11 @@ export default function LoanCalculator() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Interest & Moratorium */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="rate">Interest Rate (%)</Label>
+                <Label htmlFor="rate" className="dark:text-white">
+                  Interest Rate (%)
+                </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -360,13 +432,15 @@ export default function LoanCalculator() {
                 step="0.01"
                 value={formData.rate}
                 onChange={handleInputChange}
-                className="w-full"
+                className="w-full dark:bg-slate-800 dark:text-white"
               />
               {errors.rate && <p className="text-sm text-destructive">{errors.rate}</p>}
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="moratorium">Moratorium Period (Months)</Label>
+                <Label htmlFor="moratorium" className="dark:text-white">
+                  Moratorium Period (Months)
+                </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -386,7 +460,7 @@ export default function LoanCalculator() {
                 step="1"
                 value={formData.moratorium}
                 onChange={handleInputChange}
-                className="w-full"
+                className="w-full dark:bg-slate-800 dark:text-white"
               />
               {errors.moratorium && <p className="text-sm text-destructive">{errors.moratorium}</p>}
             </div>
@@ -395,57 +469,72 @@ export default function LoanCalculator() {
 
         {schedule.length > 0 && (
           <div className="space-y-6">
-            <div className="grid gap-6">
-              <div className="h-[300px] w-full">
-                <Line
-                  options={{
-                    ...chartOptions,
-                    maintainAspectRatio: false,
-                  }}
-                  data={chartData}
-                />
-              </div>
-              <div className="h-[200px] w-full">
-                <Bar
-                  options={{
-                    ...chartOptions,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: "EMI Breakdown",
+            <Card className="dark:bg-slate-800">
+              <CardContent className="p-6">
+                <div className="h-[300px] w-full">
+                  <Line options={chartOptions} data={chartData} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="dark:bg-slate-800">
+              <CardContent className="p-6">
+                <div className="h-[200px] w-full">
+                  <Bar
+                    options={{
+                      ...chartOptions,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        title: {
+                          display: true,
+                          text: "EMI Breakdown",
+                          color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
+                        },
                       },
-                    },
-                    scales: {
-                      x: {
-                        stacked: true,
+                      scales: {
+                        x: {
+                          stacked: true,
+                          grid: {
+                            color: darkMode ? "rgba(241, 245, 249, 0.1)" : "rgba(15, 23, 42, 0.1)",
+                          },
+                          ticks: {
+                            color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
+                          },
+                        },
+                        y: {
+                          stacked: true,
+                          beginAtZero: true,
+                          grid: {
+                            color: darkMode ? "rgba(241, 245, 249, 0.1)" : "rgba(15, 23, 42, 0.1)",
+                          },
+                          ticks: {
+                            color: darkMode ? "rgb(241, 245, 249)" : "rgb(15, 23, 42)",
+                          },
+                        },
                       },
-                      y: {
-                        stacked: true,
-                        beginAtZero: true,
-                      },
-                    },
-                  }}
-                  data={{
-                    labels: schedule.map((row) => format(row.date, "PP")),
-                    datasets: [
-                      {
-                        label: "Principal",
-                        data: schedule.map((row) => row.principal),
-                        backgroundColor: "rgb(34, 197, 94)",
-                      },
-                      {
-                        label: "Interest",
-                        data: schedule.map((row) => row.interest),
-                        backgroundColor: "rgb(14, 165, 233)",
-                      },
-                    ],
-                  }}
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
+                    }}
+                    data={{
+                      labels: schedule.map((row) => format(row.date, "PP")),
+                      datasets: [
+                        {
+                          label: "Principal",
+                          data: schedule.map((row) => row.principal),
+                          backgroundColor: "rgb(34, 197, 94)",
+                        },
+                        {
+                          label: "Interest",
+                          data: schedule.map((row) => row.interest),
+                          backgroundColor: "rgb(14, 165, 233)",
+                        },
+                      ],
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-wrap gap-2">
               <CSVLink
                 data={csvData}
                 filename="loan-schedule.csv"
@@ -454,38 +543,41 @@ export default function LoanCalculator() {
                 <Download className="mr-2 h-4 w-4" />
                 Download CSV
               </CSVLink>
-              <Button onClick={downloadPDF} variant="outline">
+              <Button onClick={downloadPDF} variant="outline" className="dark:bg-slate-800 dark:text-white">
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
             </div>
-          </div>
-        )}
 
-        {schedule.length > 0 && (
-          <div className="overflow-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="border-b bg-slate-50">
-                  <th className="p-4 text-left font-medium text-slate-600">Date</th>
-                  <th className="p-4 text-right font-medium text-slate-600">Payment</th>
-                  <th className="p-4 text-right font-medium text-slate-600">Interest</th>
-                  <th className="p-4 text-right font-medium text-slate-600">Principal</th>
-                  <th className="p-4 text-right font-medium text-slate-600">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {schedule.map((row, index) => (
-                  <tr key={index} className="border-b transition-colors hover:bg-slate-50">
-                    <td className="p-4">{format(row.date, "PP")}</td>
-                    <td className="p-4 text-right">{row.payment.toFixed(2)}</td>
-                    <td className="p-4 text-right">{row.interest.toFixed(2)}</td>
-                    <td className="p-4 text-right">{row.principal.toFixed(2)}</td>
-                    <td className="p-4 text-right">{row.balance.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto -mx-6 px-6">
+              <div className="min-w-[800px]">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                      <th className="p-4 text-left font-medium text-slate-600 dark:text-slate-200">Date</th>
+                      <th className="p-4 text-right font-medium text-slate-600 dark:text-slate-200">Payment</th>
+                      <th className="p-4 text-right font-medium text-slate-600 dark:text-slate-200">Interest</th>
+                      <th className="p-4 text-right font-medium text-slate-600 dark:text-slate-200">Principal</th>
+                      <th className="p-4 text-right font-medium text-slate-600 dark:text-slate-200">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schedule.map((row, index) => (
+                      <tr
+                        key={index}
+                        className="border-b transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800"
+                      >
+                        <td className="p-4">{format(row.date, "PP")}</td>
+                        <td className="p-4 text-right">{row.payment.toFixed(2)}</td>
+                        <td className="p-4 text-right">{row.interest.toFixed(2)}</td>
+                        <td className="p-4 text-right">{row.principal.toFixed(2)}</td>
+                        <td className="p-4 text-right">{row.balance.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>
